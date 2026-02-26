@@ -1,0 +1,109 @@
+{# ================================================================
+   finding_detail.html — Reusable partial for a single finding.
+   Expects a `finding` variable in context.
+   ================================================================ #}
+
+<div style="border: 1px solid var(--brand-grey); border-radius: 6px;
+            padding: 16px; margin-bottom: 24px; page-break-inside: avoid;">
+
+  <!-- Title + severity -->
+  <div style="display: flex; justify-content: space-between; align-items: center;
+              margin-bottom: 10px;">
+    <h3 style="margin: 0; font-size: 13pt;">{{ finding.title }}</h3>
+    <span class="sev-badge sev-{{ finding.severity }}">
+      {{ finding.severity | upper }}
+    </span>
+  </div>
+
+  <!-- CVSS -->
+  {% if finding.cvss_score is not none %}
+  <div style="margin-bottom: 8px;">
+    <strong>CVSS 3.1:</strong>
+    <span style="font-weight: 700;">{{ "%.1f" | format(finding.cvss_score) }}</span>
+    {% if finding.cvss_vector %}
+      <code style="font-size: 8pt; margin-left: 8px;">{{ finding.cvss_vector }}</code>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Description -->
+  <div style="margin-bottom: 12px;">
+    <h4 style="margin-top: 0;">Description</h4>
+    <p>{{ finding.description }}</p>
+  </div>
+
+  <!-- Business impact -->
+  {% if finding.business_impact %}
+  <div class="callout callout-warning" style="margin-bottom: 12px;">
+    <h4 style="margin-top: 0;">Business Impact</h4>
+    <p>{{ finding.business_impact }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Reproduction steps (from raw_output) -->
+  {% if finding.raw_output %}
+  <div style="margin-bottom: 12px;">
+    <h4>Reproduction Steps</h4>
+    <pre>{{ finding.raw_output }}</pre>
+  </div>
+  {% endif %}
+
+  <!-- Evidence thumbnails -->
+  {% if finding.evidence %}
+  <div style="margin-bottom: 12px;">
+    <h4>Evidence</h4>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      {% for ev in finding.evidence %}
+        {% if ev.base64_data and ev.mime_type and ev.mime_type.startswith("image/") %}
+          <img class="evidence-img"
+               src="data:{{ ev.mime_type }};base64,{{ ev.base64_data }}"
+               alt="Evidence {{ ev.artifact_id }}"
+               style="max-height: 200px;" />
+        {% else %}
+          <div style="padding: 8px; background: var(--brand-grey-light);
+                      border-radius: 4px; font-size: 8pt;">
+            📎 {{ ev.artifact_type | default("file") }}
+            ({{ ev.storage_path | default("unknown") }})
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Remediation -->
+  {% if finding.remediation_guidance or finding.remediation %}
+  <div style="background: var(--brand-grey-light); padding: 10px 14px;
+              border-radius: 4px; margin-bottom: 8px;">
+    <h4 style="margin-top: 0; color: var(--ctrl-pass);">Remediation</h4>
+    <p>{{ finding.remediation_guidance | default(finding.remediation) }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Compliance references -->
+  {% if finding.compliance %}
+  <div style="margin-top: 8px;">
+    <h4>Compliance References</h4>
+    <table style="font-size: 8pt;">
+      <tr>
+        <th>Framework</th>
+        <th>Control ID</th>
+        <th>Title</th>
+      </tr>
+      {% for ctrl in finding.compliance.soc2 %}
+      <tr><td>SOC 2</td><td>{{ ctrl.control_id }}</td><td>{{ ctrl.title }}</td></tr>
+      {% endfor %}
+      {% for ctrl in finding.compliance.pci_dss %}
+      <tr><td>PCI-DSS</td><td>{{ ctrl.control_id }}</td><td>{{ ctrl.title }}</td></tr>
+      {% endfor %}
+      {% for ctrl in finding.compliance.hipaa %}
+      <tr><td>HIPAA</td><td>{{ ctrl.control_id }}</td><td>{{ ctrl.title }}</td></tr>
+      {% endfor %}
+      {% for ctrl in finding.compliance.iso27001 %}
+      <tr><td>ISO 27001</td><td>{{ ctrl.control_id }}</td><td>{{ ctrl.title }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endif %}
+
+</div>

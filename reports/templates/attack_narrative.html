@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-break"></div>
+
+<h1>Attack Narrative</h1>
+
+<p style="color: var(--brand-grey-dark); font-style: italic; margin-bottom: 1.5em;">
+  The following is a chronological account of the engagement, describing
+  the reconnaissance, exploitation, and post-exploitation activities
+  performed by the Lucifer AI agents.
+</p>
+
+<div style="border-left: 3px solid var(--brand-navy); padding-left: 16px;">
+  {{ attack_narrative | default("No attack narrative is available for this engagement.") }}
+</div>
+
+{% endblock %}

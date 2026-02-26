@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-break"></div>
+
+<h1>Executive Summary</h1>
+
+<!-- Overall risk rating callout -->
+<div class="callout callout-warning" style="text-align: center; padding: 20px;">
+  <div style="font-size: 11pt; color: var(--brand-navy); margin-bottom: 4px;">
+    Overall Risk Rating
+  </div>
+  <div style="font-size: 24pt; font-weight: 800;">
+    {% set rating = risk_rating | default("Medium") | lower %}
+    {% if rating == "critical" %}
+      <span style="color: var(--sev-critical);">CRITICAL</span>
+    {% elif rating == "high" %}
+      <span style="color: var(--sev-high);">HIGH</span>
+    {% elif rating == "medium" %}
+      <span style="color: var(--sev-medium);">MEDIUM</span>
+    {% elif rating == "low" %}
+      <span style="color: var(--sev-low);">LOW</span>
+    {% else %}
+      <span style="color: var(--sev-info);">{{ risk_rating | default("N/A") | upper }}</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Finding counts -->
+{% set findings = findings | default([]) %}
+{% set n_crit = findings | selectattr("severity", "equalto", "critical") | list | length %}
+{% set n_high = findings | selectattr("severity", "equalto", "high") | list | length %}
+{% set n_med  = findings | selectattr("severity", "equalto", "medium") | list | length %}
+{% set n_low  = findings | selectattr("severity", "equalto", "low") | list | length %}
+{% set n_info = findings | selectattr("severity", "equalto", "info") | list | length %}
+
+<table style="width: 80%; margin: 20px auto;">
+  <tr>
+    <th>Severity</th>
+    <th style="text-align: center;">Count</th>
+  </tr>
+  <tr>
+    <td><span class="sev-badge sev-critical">Critical</span></td>
+    <td style="text-align: center; font-weight: 700;">{{ n_crit }}</td>
+  </tr>
+  <tr>
+    <td><span class="sev-badge sev-high">High</span></td>
+    <td style="text-align: center; font-weight: 700;">{{ n_high }}</td>
+  </tr>
+  <tr>
+    <td><span class="sev-badge sev-medium">Medium</span></td>
+    <td style="text-align: center; font-weight: 700;">{{ n_med }}</td>
+  </tr>
+  <tr>
+    <td><span class="sev-badge sev-low">Low</span></td>
+    <td style="text-align: center; font-weight: 700;">{{ n_low }}</td>
+  </tr>
+  <tr>
+    <td><span class="sev-badge sev-info">Info</span></td>
+    <td style="text-align: center; font-weight: 700;">{{ n_info }}</td>
+  </tr>
+  <tr style="background: var(--brand-grey-light);">
+    <td style="font-weight: 700;">Total</td>
+    <td style="text-align: center; font-weight: 700;">{{ findings | length }}</td>
+  </tr>
+</table>
+
+<!-- Top findings -->
+{% if findings %}
+<h3>Top Findings</h3>
+<table>
+  <tr>
+    <th style="width: 5%;">#</th>
+    <th>Title</th>
+    <th style="width: 12%;">Severity</th>
+    <th style="width: 10%;">CVSS</th>
+  </tr>
+  {% for f in findings[:5] %}
+  <tr>
+    <td>{{ loop.index }}</td>
+    <td>{{ f.title }}</td>
+    <td>
+      <span class="sev-badge sev-{{ f.severity }}">{{ f.severity | upper }}</span>
+    </td>
+    <td>{{ f.cvss_score | default("—") }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<!-- Business impact callout -->
+<div class="callout">
+  <h4 style="margin-top: 0;">Business Impact</h4>
+  <p>{{ executive_summary | default("No executive summary available.") }}</p>
+</div>
+
+{% endblock %}

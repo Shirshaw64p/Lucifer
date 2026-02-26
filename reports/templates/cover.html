@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; justify-content: center;
+            align-items: center; min-height: 80vh; text-align: center;">
+
+  <!-- Brand mark -->
+  <div style="margin-bottom: 40px;">
+    <span style="font-size: 48pt; font-weight: 800; color: var(--brand-red);
+                 letter-spacing: 6px; text-transform: uppercase;">
+      LUCIFER
+    </span>
+    <div style="font-size: 11pt; color: var(--brand-navy); margin-top: 4px;
+                letter-spacing: 3px; text-transform: uppercase;">
+      Autonomous AI Red-Team Platform
+    </div>
+  </div>
+
+  <!-- Report title -->
+  <div style="margin-bottom: 60px;">
+    <h1 style="font-size: 28pt; border: none; color: var(--brand-navy);
+               margin: 0 0 8px 0; padding: 0;">
+      Penetration Test Report
+    </h1>
+    <div style="width: 120px; height: 3px; background: var(--brand-red);
+                margin: 0 auto 20px auto;"></div>
+  </div>
+
+  <!-- Metadata table -->
+  <table style="width: 460px; margin: 0 auto; border: none;">
+    <tr style="background: none;">
+      <td style="border: none; text-align: right; font-weight: 600;
+                 color: var(--brand-navy); padding: 6px 16px; width: 40%;">
+        Target
+      </td>
+      <td style="border: none; text-align: left; padding: 6px 16px;">
+        {{ target_name | default("—") }}
+      </td>
+    </tr>
+    <tr style="background: none;">
+      <td style="border: none; text-align: right; font-weight: 600;
+                 color: var(--brand-navy); padding: 6px 16px;">
+        Date
+      </td>
+      <td style="border: none; text-align: left; padding: 6px 16px;">
+        {{ report_date | default("—") }}
+      </td>
+    </tr>
+    <tr style="background: none;">
+      <td style="border: none; text-align: right; font-weight: 600;
+                 color: var(--brand-navy); padding: 6px 16px;">
+        Classification
+      </td>
+      <td style="border: none; text-align: left; padding: 6px 16px;">
+        <span style="color: var(--brand-red); font-weight: 700;">
+          {{ classification | default("CONFIDENTIAL") }}
+        </span>
+      </td>
+    </tr>
+    <tr style="background: none;">
+      <td style="border: none; text-align: right; font-weight: 600;
+                 color: var(--brand-navy); padding: 6px 16px;">
+        Operator
+      </td>
+      <td style="border: none; text-align: left; padding: 6px 16px;">
+        {{ operator | default("Lucifer AI") }}
+      </td>
+    </tr>
+  </table>
+
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-break"></div>
+
+<h1>Asset Inventory</h1>
+
+<p style="color: var(--brand-grey-dark); margin-bottom: 1.5em;">
+  The following table lists all assets discovered during the engagement.
+</p>
+
+{% if assets %}
+<table>
+  <tr>
+    <th style="width: 5%;">#</th>
+    <th style="width: 12%;">Type</th>
+    <th>Value</th>
+    <th style="width: 10%;">In Scope</th>
+    <th>Metadata</th>
+  </tr>
+  {% for asset in assets %}
+  <tr>
+    <td>{{ loop.index }}</td>
+    <td>
+      <span style="padding: 2px 6px; background: var(--brand-navy);
+                   color: #fff; border-radius: 3px; font-size: 8pt;
+                   text-transform: uppercase;">
+        {{ asset.target_type }}
+      </span>
+    </td>
+    <td><code>{{ asset.value }}</code></td>
+    <td style="text-align: center;">
+      {% if asset.in_scope %}
+        <span style="color: var(--ctrl-pass); font-weight: 700;">✓</span>
+      {% else %}
+        <span style="color: var(--ctrl-fail); font-weight: 700;">✗</span>
+      {% endif %}
+    </td>
+    <td style="font-size: 8pt;">
+      {% if asset.metadata_ %}
+        {% for k, v in asset.metadata_.items() %}
+          <strong>{{ k }}:</strong> {{ v }}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      {% else %}
+        —
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<div class="callout callout-info">
+  <p>No assets were discovered or recorded for this engagement.</p>
+</div>
+{% endif %}
+
+{% endblock %}

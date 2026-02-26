@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-break"></div>
+
+<h1>Compliance Control Matrix</h1>
+
+<p style="color: var(--brand-grey-dark); margin-bottom: 1.5em;">
+  The following tables map each compliance control to its assessment status
+  based on findings from this engagement.
+</p>
+
+{% set framework_labels = {
+  "soc2": "SOC 2 (Type I &amp; II)",
+  "pci_dss": "PCI-DSS v4.0",
+  "hipaa": "HIPAA (45 CFR)",
+  "iso27001": "ISO/IEC 27001:2022 Annex A"
+} %}
+
+{% if compliance_matrix and compliance_matrix.entries %}
+
+  {% for fw_key, fw_label in framework_labels.items() %}
+    {% set fw_entries = compliance_matrix.entries | selectattr("framework", "equalto", fw_key) | list %}
+    {% if fw_entries %}
+
+    <h2>{{ fw_label }}</h2>
+    <table>
+      <tr>
+        <th style="width: 14%;">Control ID</th>
+        <th>Title</th>
+        <th style="width: 12%; text-align: center;">Status</th>
+        <th style="width: 10%; text-align: center;">Findings</th>
+      </tr>
+      {% for entry in fw_entries %}
+      <tr>
+        <td><strong>{{ entry.control_id }}</strong></td>
+        <td>{{ entry.title }}</td>
+        <td style="text-align: center;">
+          {% if entry.status == "pass" %}
+            <span class="sev-badge ctrl-pass">PASS</span>
+          {% elif entry.status == "fail" %}
+            <span class="sev-badge ctrl-fail">FAIL</span>
+          {% elif entry.status == "partial" %}
+            <span class="sev-badge ctrl-partial">PARTIAL</span>
+          {% else %}
+            <span class="sev-badge ctrl-nt">N/T</span>
+          {% endif %}
+        </td>
+        <td style="text-align: center;">
+          {{ entry.finding_ids | length if entry.finding_ids else "—" }}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    {% endif %}
+  {% endfor %}
+
+{% else %}
+<div class="callout callout-info">
+  <p>No compliance mapping data is available for this engagement.</p>
+</div>
+{% endif %}
+
+{% endblock %}

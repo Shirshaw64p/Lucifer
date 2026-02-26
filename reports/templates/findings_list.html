@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-break"></div>
+
+<h1>Detailed Findings</h1>
+
+<p style="color: var(--brand-grey-dark); margin-bottom: 1.5em;">
+  {{ findings | length }} finding{{ "s" if findings | length != 1 else "" }}
+  identified during this engagement, ordered by severity.
+</p>
+
+{% for finding in findings %}
+  {% include "finding_detail.html" %}
+{% endfor %}
+
+{% if not findings %}
+<div class="callout callout-info">
+  <p>No findings were recorded for this engagement.</p>
+</div>
+{% endif %}
+
+{% endblock %}

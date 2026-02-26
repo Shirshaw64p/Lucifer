@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-break"></div>
+
+<h1>Evidence Appendix</h1>
+
+<p style="color: var(--brand-grey-dark); margin-bottom: 1.5em;">
+  This appendix contains supporting evidence collected during the
+  engagement, including screenshots and HTTP transaction transcripts.
+</p>
+
+{% for finding in findings %}
+  {% if finding.evidence %}
+  <h3>{{ finding.title }}</h3>
+
+  {% for ev in finding.evidence %}
+  <div style="border: 1px solid var(--brand-grey); border-radius: 4px;
+              padding: 12px; margin-bottom: 16px; page-break-inside: avoid;">
+
+    <div style="font-size: 8pt; color: var(--brand-grey-dark); margin-bottom: 6px;">
+      <strong>Type:</strong> {{ ev.artifact_type | default("unknown") }}
+      &nbsp;|&nbsp;
+      <strong>Path:</strong> {{ ev.storage_path | default("—") }}
+      {% if ev.size_bytes %}
+        &nbsp;|&nbsp;
+        <strong>Size:</strong> {{ ev.size_bytes | filesizeformat if ev.size_bytes else "—" }}
+      {% endif %}
+    </div>
+
+    {% if ev.base64_data and ev.mime_type and ev.mime_type.startswith("image/") %}
+      <!-- Embedded screenshot -->
+      <img class="evidence-img"
+           src="data:{{ ev.mime_type }};base64,{{ ev.base64_data }}"
+           alt="Evidence for {{ finding.title }}"
+           style="max-width: 100%;" />
+
+    {% elif ev.base64_data and ev.artifact_type == "log" %}
+      <!-- Truncated HAR / log transcript -->
+      {% set decoded = ev.base64_data | b64decode | default(ev.base64_data) %}
+      <pre style="max-height: 300px; overflow-y: auto;">{{ decoded[:3000] }}</pre>
+      {% if decoded | length > 3000 %}
+        <p style="font-size: 8pt; color: var(--brand-red);">
+          ⚠ Transcript truncated — <a href="#">view full transcript</a>
+        </p>
+      {% endif %}
+
+    {% else %}
+      <div style="padding: 10px; background: var(--brand-grey-light);
+                  border-radius: 4px; text-align: center; color: var(--brand-grey-dark);">
+        📎 Artifact available: {{ ev.storage_path | default("binary file") }}
+      </div>
+    {% endif %}
+
+  </div>
+  {% endfor %}
+
+  {% endif %}
+{% endfor %}
+
+{% if not findings or not findings | selectattr("evidence") | list %}
+<div class="callout callout-info">
+  <p>No evidence artifacts were collected during this engagement.</p>
+</div>
+{% endif %}
+
+{% endblock %}

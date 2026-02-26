@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-break"></div>
+
+<h1>Remediation Roadmap</h1>
+
+<p style="color: var(--brand-grey-dark); margin-bottom: 1.5em;">
+  The following table presents a prioritised remediation plan, ordered
+  by severity and estimated effort.  Address Critical and High items first.
+</p>
+
+{% set severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4} %}
+
+{% if findings %}
+<table>
+  <tr>
+    <th style="width: 4%;">#</th>
+    <th style="width: 10%;">Priority</th>
+    <th>Finding</th>
+    <th style="width: 10%;">Severity</th>
+    <th style="width: 12%;">Est. Effort</th>
+    <th>Remediation Guidance</th>
+  </tr>
+  {% for finding in findings | sort(attribute="severity", reverse=false) %}
+  <tr>
+    <td>{{ loop.index }}</td>
+    <td style="text-align: center;">
+      {% if finding.severity in ["critical", "high"] %}
+        <span style="color: var(--sev-critical); font-weight: 700;">P1</span>
+      {% elif finding.severity == "medium" %}
+        <span style="color: var(--sev-medium); font-weight: 700;">P2</span>
+      {% elif finding.severity == "low" %}
+        <span style="color: var(--sev-low); font-weight: 700;">P3</span>
+      {% else %}
+        <span style="color: var(--sev-info);">P4</span>
+      {% endif %}
+    </td>
+    <td>{{ finding.title }}</td>
+    <td>
+      <span class="sev-badge sev-{{ finding.severity }}">
+        {{ finding.severity | upper }}
+      </span>
+    </td>
+    <td style="text-align: center;">
+      {{ finding.effort_estimate | default("TBD") }}
+    </td>
+    <td style="font-size: 8pt;">
+      {% set rem_text = finding.remediation_guidance or finding.remediation or "See finding details." %}
+      {{ rem_text[:200] }}{% if rem_text | length > 200 %}...{% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<div class="callout callout-info">
+  <p>No findings require remediation.</p>
+</div>
+{% endif %}
+
+{% endblock %}

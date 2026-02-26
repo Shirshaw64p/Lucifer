@@ -1,0 +1,88 @@
+# Docker Compose for Lucifer platform infrastructure.
+# Brings up PostgreSQL 16, Redis 7, ChromaDB, MinIO, and Interactsh.
+
+services:
+  # ── PostgreSQL 16 — primary state store ──────────────────────────────────
+  postgres:
+    image: postgres:16
+    container_name: lucifer-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lucifer}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_pg_password}
+      POSTGRES_DB: ${POSTGRES_DB:-lucifer}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lucifer}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis 7 — Celery broker + cache ──────────────────────────────────────
+  redis:
+    image: redis:7
+    container_name: lucifer-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-changeme_redis_password}
+      --appendonly yes
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme_redis_password}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── ChromaDB — vector embeddings store ───────────────────────────────────
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: lucifer-chromadb
+    restart: unless-stopped
+    ports:
+      - "${CHROMA_PORT:-8000}:8000"
+    volumes:
+      - chromadata:/chroma/chroma
+    environment:
+      IS_PERSISTENT: "TRUE"
+
+  # ── MinIO — S3-compatible artifact / object store ────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: lucifer-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-changeme_minio_secret}
+    ports:
+      - "9000:9000"    # API
+      - "9001:9001"    # Console
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Interactsh — OOB (out-of-band) callback server ──────────────────────
+  interactsh:
+    image: projectdiscovery/interactsh-server:latest
+    container_name: lucifer-interactsh
+    restart: unless-stopped
+    ports:
+      - "${INTERACTSH_PORT:-8001}:8001"
+    command: ["-listen-ip", "0.0.0.0", "-port", "8001"]
+
+volumes:
+  pgdata:
+  redisdata:
+  chromadata:
+  miniodata:

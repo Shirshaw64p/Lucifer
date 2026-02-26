@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title | default("Lucifer — Penetration Test Report") }}</title>
+  <style>
+    /* ================================================================
+       Lucifer Report — Global Stylesheet
+       Brand: dark-red (#8B0000) + navy (#1B2A4A)
+       ================================================================ */
+
+    :root {
+      --brand-red: #8B0000;
+      --brand-red-light: #A52A2A;
+      --brand-navy: #1B2A4A;
+      --brand-navy-light: #2C3E6B;
+      --brand-white: #FFFFFF;
+      --brand-grey-light: #F4F4F6;
+      --brand-grey: #E0E0E0;
+      --brand-grey-dark: #6C757D;
+      --brand-black: #212529;
+
+      /* Severity palette */
+      --sev-critical: #DC2626;
+      --sev-critical-bg: #FEE2E2;
+      --sev-high: #EA580C;
+      --sev-high-bg: #FFF7ED;
+      --sev-medium: #CA8A04;
+      --sev-medium-bg: #FEFCE8;
+      --sev-low: #2563EB;
+      --sev-low-bg: #EFF6FF;
+      --sev-info: #6B7280;
+      --sev-info-bg: #F3F4F6;
+
+      /* Control matrix */
+      --ctrl-pass: #16A34A;
+      --ctrl-pass-bg: #DCFCE7;
+      --ctrl-fail: #DC2626;
+      --ctrl-fail-bg: #FEE2E2;
+      --ctrl-partial: #CA8A04;
+      --ctrl-partial-bg: #FEFCE8;
+      --ctrl-nt: #9CA3AF;
+      --ctrl-nt-bg: #F3F4F6;
+
+      --page-margin: 20mm;
+      --font-main: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "Cascadia Code", "Fira Code", "Consolas", monospace;
+    }
+
+    @page {
+      size: A4;
+      margin: var(--page-margin);
+      @top-left {
+        content: "LUCIFER — Confidential";
+        font-size: 8pt;
+        color: var(--brand-grey-dark);
+        font-family: var(--font-main);
+      }
+      @top-right {
+        content: "{{ report_date | default('') }}";
+        font-size: 8pt;
+        color: var(--brand-grey-dark);
+        font-family: var(--font-main);
+      }
+      @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+        font-size: 8pt;
+        color: var(--brand-grey-dark);
+        font-family: var(--font-main);
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-main);
+      font-size: 10pt;
+      line-height: 1.6;
+      color: var(--brand-black);
+      background: var(--brand-white);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--brand-navy);
+      margin-top: 1.2em;
+      margin-bottom: 0.5em;
+      page-break-after: avoid;
+    }
+
+    h1 { font-size: 22pt; border-bottom: 3px solid var(--brand-red); padding-bottom: 6px; }
+    h2 { font-size: 16pt; border-bottom: 2px solid var(--brand-navy); padding-bottom: 4px; }
+    h3 { font-size: 13pt; }
+    h4 { font-size: 11pt; }
+
+    p { margin-bottom: 0.8em; }
+    a { color: var(--brand-red); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code, pre {
+      font-family: var(--font-mono);
+      font-size: 9pt;
+      background: var(--brand-grey-light);
+      border-radius: 3px;
+    }
+    code { padding: 2px 4px; }
+    pre { padding: 12px; overflow-x: auto; margin-bottom: 1em; white-space: pre-wrap; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.2em;
+      page-break-inside: auto;
+    }
+    th, td {
+      border: 1px solid var(--brand-grey);
+      padding: 6px 10px;
+      text-align: left;
+      font-size: 9pt;
+    }
+    th {
+      background: var(--brand-navy);
+      color: var(--brand-white);
+      font-weight: 600;
+    }
+    tr:nth-child(even) { background: var(--brand-grey-light); }
+    tr { page-break-inside: avoid; }
+
+    /* Severity badges */
+    .sev-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 8pt;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .sev-critical { background: var(--sev-critical); color: #fff; }
+    .sev-high     { background: var(--sev-high);     color: #fff; }
+    .sev-medium   { background: var(--sev-medium);   color: #fff; }
+    .sev-low      { background: var(--sev-low);      color: #fff; }
+    .sev-info     { background: var(--sev-info);     color: #fff; }
+
+    /* Control status badges */
+    .ctrl-pass    { background: var(--ctrl-pass-bg); color: var(--ctrl-pass); font-weight: 700; }
+    .ctrl-fail    { background: var(--ctrl-fail-bg); color: var(--ctrl-fail); font-weight: 700; }
+    .ctrl-partial { background: var(--ctrl-partial-bg); color: var(--ctrl-partial); font-weight: 700; }
+    .ctrl-nt      { background: var(--ctrl-nt-bg);  color: var(--ctrl-nt); }
+
+    /* Callout boxes */
+    .callout {
+      border-left: 4px solid var(--brand-red);
+      background: var(--brand-grey-light);
+      padding: 12px 16px;
+      margin: 1em 0;
+      border-radius: 0 4px 4px 0;
+    }
+    .callout-warning {
+      border-left-color: var(--sev-high);
+      background: var(--sev-high-bg);
+    }
+    .callout-info {
+      border-left-color: var(--sev-low);
+      background: var(--sev-low-bg);
+    }
+
+    /* Section break helper */
+    .page-break { page-break-before: always; }
+
+    /* Evidence images */
+    .evidence-img {
+      max-width: 100%;
+      border: 1px solid var(--brand-grey);
+      border-radius: 4px;
+      margin: 8px 0;
+    }
+
+    /* Header / footer areas */
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--brand-navy);
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+    .report-header .brand {
+      font-size: 14pt;
+      font-weight: 700;
+      color: var(--brand-red);
+      letter-spacing: 2px;
+    }
+
+    .report-footer {
+      margin-top: 40px;
+      border-top: 1px solid var(--brand-grey);
+      padding-top: 8px;
+      font-size: 8pt;
+      color: var(--brand-grey-dark);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  {% block content %}{% endblock %}
+
+  <div class="report-footer">
+    Generated by <strong>Lucifer</strong> — Autonomous AI Red-Team Platform
+    &nbsp;|&nbsp; {{ report_date | default("") }}
+    &nbsp;|&nbsp; CONFIDENTIAL
+  </div>
+</body>
+</html>
