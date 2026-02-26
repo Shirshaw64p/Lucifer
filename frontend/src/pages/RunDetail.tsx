@@ -8,8 +8,11 @@ import {
   ChevronUp,
   Clock,
   Filter,
+  Pause,
+  Play,
   ShieldAlert,
   ShieldCheck,
+  Square,
   Zap,
 } from 'lucide-react'
 import {
@@ -175,6 +178,46 @@ export default function RunDetail() {
 
   const pendingApprovalsList = approvals.filter((a: ApprovalEvent) => a.status === 'pending')
 
+  const handleStopRun = async () => {
+    if (!runId) return
+    const confirmed = window.confirm('Are you sure you want to stop this pentest run?')
+    if (!confirmed) return
+    try {
+      await runsApi.cancel(runId)
+    } catch {
+      addNotification({ severity: 'high', title: 'Error', message: 'Failed to stop run', timestamp: new Date().toISOString() })
+    }
+  }
+
+  const handlePauseRun = async () => {
+    if (!runId) return
+    try {
+      await runsApi.pause(runId)
+    } catch {
+      addNotification({ severity: 'high', title: 'Error', message: 'Failed to pause run', timestamp: new Date().toISOString() })
+    }
+  }
+
+  const handleResumeRun = async () => {
+    if (!runId) return
+    try {
+      await runsApi.start(runId)
+    } catch {
+      addNotification({ severity: 'high', title: 'Error', message: 'Failed to resume run', timestamp: new Date().toISOString() })
+    }
+  }
+
+  const statusBadgeClass = (s: string | undefined) => {
+    switch (s) {
+      case 'running': return 'text-green-400'
+      case 'completed': return 'text-blue-400'
+      case 'cancelled': return 'text-red-400'
+      case 'paused': return 'text-yellow-400'
+      case 'failed': return 'text-red-500'
+      default: return 'text-muted-foreground'
+    }
+  }
+
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
@@ -183,12 +226,38 @@ export default function RunDetail() {
           <h1 className="text-3xl font-bold">{run?.name || 'Run Detail'}</h1>
           <p className="text-muted-foreground mt-1">
             Status:{' '}
-            <span className={`font-semibold ${run?.status === 'running' ? 'text-green-400' : 'text-muted-foreground'}`}>
+            <span className={`font-semibold ${statusBadgeClass(run?.status)}`}>
               {run?.status || 'loading...'}
             </span>
             {' · '}
             {run?.targets.length || 0} targets · {findings.length} findings
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {run?.status === 'paused' && (
+            <button
+              onClick={handleResumeRun}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+            >
+              <Play className="h-4 w-4" /> Resume
+            </button>
+          )}
+          {run?.status === 'running' && (
+            <button
+              onClick={handlePauseRun}
+              className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-medium transition-colors"
+            >
+              <Pause className="h-4 w-4" /> Pause
+            </button>
+          )}
+          {(run?.status === 'running' || run?.status === 'pending' || run?.status === 'paused') && (
+            <button
+              onClick={handleStopRun}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+            >
+              <Square className="h-4 w-4" /> Stop Run
+            </button>
+          )}
         </div>
       </div>
 

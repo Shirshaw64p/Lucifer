@@ -112,6 +112,11 @@ class Settings(BaseSettings):
     interactsh_host: str = "localhost"
     interactsh_port: int = 8001
 
+    # ── LLM API Keys ─────────────────────────────────────────────────────
+    anthropic_api_key: str = ""
+    openai_api_key: str = ""
+    ollama_base_url: str = "http://localhost:11434"
+
 
 @lru_cache
 def get_settings() -> Settings:

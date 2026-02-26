@@ -166,9 +166,22 @@ async def cancel_run(run_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     run = result.scalar_one_or_none()
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
+    if run.status not in (RunStatus.running, RunStatus.pending, RunStatus.paused):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot cancel run in '{run.status.value}' state",
+        )
     run.status = RunStatus.cancelled
     await db.flush()
     await db.refresh(run)
+
+    # Attempt to revoke the Celery task
+    try:
+        from backend.app.tasks.celery_app import celery_app
+        celery_app.control.revoke(str(run.id), terminate=True)
+    except Exception:
+        pass  # Best-effort revocation
+
     return run
 
 
